@@ -58,9 +58,11 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 {
 	m_EmoteStop = -1;
 	m_LastAction = -1;
+	m_Damage = 0;
+	m_Attacker = -1;
 	m_LastNoAmmoSound = -1;
-	m_ActiveWeapon = WEAPON_GUN;
-	m_LastWeapon = WEAPON_HAMMER;
+	m_ActiveWeapon = WEAPON_HAMMER;
+	// m_LastWeapon = WEAPON_HAMMER;
 	m_QueuedWeapon = -1;
 
 	m_pPlayer = pPlayer;
@@ -651,6 +653,11 @@ void CCharacter::Die(int Killer, int Weapon)
 	// we got to wait 0.5 secs before respawning
 	m_Alive = false;
 	m_pPlayer->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
+	if (Weapon == WEAPON_WORLD && m_Attacker != -1)
+	{
+		Killer = m_Attacker;
+		Weapon = WEAPON_HAMMER;
+	}
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
 
 	char aBuf[256];
@@ -680,40 +687,42 @@ void CCharacter::Die(int Killer, int Weapon)
 
 bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weapon)
 {
-	m_Core.m_Vel += Force;
-
 	if(GameServer()->m_pController->IsFriendlyFire(m_pPlayer->GetCID(), From))
 		return false;
 
 	// m_pPlayer only inflicts half damage on self
-	if(From == m_pPlayer->GetCID())
-		Dmg = max(1, Dmg/2);
+	// if(From == m_pPlayer->GetCID())
+	// 	Dmg = max(1, Dmg/2);
 
 	int OldHealth = m_Health, OldArmor = m_Armor;
 	if(Dmg)
 	{
-		if(m_Armor)
-		{
-			if(Dmg > 1)
-			{
-				m_Health--;
-				Dmg--;
-			}
+		m_Damage ++;
+		m_Attacker = From;
+		//if(m_Armor)
+		//{
+		//	if(Dmg > 1)
+		//	{
+		//		m_Health--;
+		//		Dmg--;
+		//	}
 
-			if(Dmg > m_Armor)
-			{
-				Dmg -= m_Armor;
-				m_Armor = 0;
-			}
-			else
-			{
-				m_Armor -= Dmg;
-				Dmg = 0;
-			}
-		}
+		//	if(Dmg > m_Armor)
+		//	{
+		//		Dmg -= m_Armor;
+		//		m_Armor = 0;
+		//	}
+		//	else
+		//	{
+		//		m_Armor -= Dmg;
+		//		Dmg = 0;
+		//	}
+		//}
 
-		m_Health -= Dmg;
+		//m_Health -= Dmg;
 	}
+
+	m_Core.m_Vel += Force * 2 + Force * m_Damage/20 * g_Config.m_SvForceEnlarge;
 
 	// create healthmod indicator
 	GameServer()->CreateDamage(m_Pos, m_pPlayer->GetCID(), Source, OldHealth-m_Health, OldArmor-m_Armor, From == m_pPlayer->GetCID());

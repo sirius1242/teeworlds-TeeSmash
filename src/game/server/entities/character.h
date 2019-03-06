@@ -100,6 +100,8 @@ private:
 	int m_Jumped;
 
 	int m_Health;
+	int m_Damage;
+	int m_Attacker;
 	int m_Armor;
 
 	int m_TriggeredEvents;
