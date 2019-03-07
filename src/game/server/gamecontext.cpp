@@ -1003,7 +1003,9 @@ void CGameContext::OnMessage(int MsgID, CUnpacker *pUnpacker, int ClientID)
 				pPlayer->m_TeeInfos.m_aUseCustomColors[p] = pMsg->m_aUseCustomColors[p];
 				pPlayer->m_TeeInfos.m_aSkinPartColors[p] = pMsg->m_aSkinPartColors[p];
 			}
-			pPlayer->m_TeeInfos.m_aSkinPartColors[0] = 0x5b806f;
+			// pPlayer->m_TeeInfos.m_aSkinPartColors[0] = 0x5b806f;
+			pPlayer->m_TeeInfos.m_aUseCustomColors[0] = 1;
+			pPlayer->m_TeeInfos.m_aSkinPartColors[0] = 0x40a050;
 			str_copy(pPlayer->m_TeeInfos.m_aaSkinPartNames[1], "\0", 24);
 			// 0x4cb445, 0xff116ea8, 0xff80, 0x108579, 0x118126, 0xff80
 

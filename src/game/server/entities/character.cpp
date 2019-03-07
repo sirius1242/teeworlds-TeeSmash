@@ -151,7 +151,7 @@ void CCharacter::HandleNinja()
 		// Set velocity
 		m_Core.m_Vel = m_Ninja.m_ActivationDir * g_pData->m_Weapons.m_Ninja.m_Velocity;
 		vec2 OldPos = m_Pos;
-		GameServer()->Collision()->MoveBox(&m_Core.m_Pos, &m_Core.m_Vel, vec2(GetProximityRadius(), GetProximityRadius()), 0.f);
+		//GameServer()->Collision()->MoveBox(&m_Core.m_Pos, &m_Core.m_Vel, vec2(GetProximityRadius(), GetProximityRadius()), 0.f);
 
 		// reset velocity so the client doesn't predict stuff
 		m_Core.m_Vel = vec2(0.f, 0.f);
@@ -189,7 +189,8 @@ void CCharacter::HandleNinja()
 				if(m_NumObjectsHit < 10)
 					m_apHitObjects[m_NumObjectsHit++] = aEnts[i];
 
-				aEnts[i]->TakeDamage(vec2(0, -10.0f), m_Ninja.m_ActivationDir*-1, g_pData->m_Weapons.m_Ninja.m_pBase->m_Damage, m_pPlayer->GetCID(), WEAPON_NINJA);
+				aEnts[i]->TakeDamage(vec2(0.f, -5.f), m_Ninja.m_ActivationDir*-1, g_pData->m_Weapons.m_Ninja.m_pBase->m_Damage, m_pPlayer->GetCID(), WEAPON_NINJA);
+				// aEnts[i]->TakeDamage(vec2(0, -10.0f), m_Ninja.m_ActivationDir*-1, g_pData->m_Weapons.m_Ninja.m_pBase->m_Damage, m_pPlayer->GetCID(), WEAPON_NINJA);
 			}
 		}
 
@@ -292,11 +293,15 @@ void CCharacter::FireWeapon()
 
 	switch(m_ActiveWeapon)
 	{
+		case WEAPON_NINJA:
 		case WEAPON_HAMMER:
 		{
 			// reset objects Hit
 			m_NumObjectsHit = 0;
-			GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
+			if(m_ActiveWeapon == WEAPON_NINJA)
+				GameServer()->CreateSound(m_Pos, SOUND_NINJA_FIRE);
+			else
+				GameServer()->CreateSound(m_Pos, SOUND_HAMMER_FIRE);
 
 			CCharacter *apEnts[MAX_CLIENTS];
 			int Hits = 0;
@@ -322,7 +327,11 @@ void CCharacter::FireWeapon()
 				else
 					Dir = vec2(0.f, -1.f);
 
-				pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+				if(m_ActiveWeapon == WEAPON_NINJA)
+					pTarget->TakeDamage(vec2(0.f, -5.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+					m_pPlayer->GetCID(), m_ActiveWeapon);
+				else
+					pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
 					m_pPlayer->GetCID(), m_ActiveWeapon);
 				Hits++;
 			}
@@ -385,17 +394,17 @@ void CCharacter::FireWeapon()
 			GameServer()->CreateSound(m_Pos, SOUND_LASER_FIRE);
 		} break;
 
-		case WEAPON_NINJA:
-		{
-			// reset Hit objects
-			m_NumObjectsHit = 0;
+		//case WEAPON_NINJA:
+		//{
+		//	// reset Hit objects
+		//	m_NumObjectsHit = 0;
 
-			m_Ninja.m_ActivationDir = Direction;
-			m_Ninja.m_CurrentMoveTime = g_pData->m_Weapons.m_Ninja.m_Movetime * Server()->TickSpeed() / 1000;
-			m_Ninja.m_OldVelAmount = length(m_Core.m_Vel);
+		//	m_Ninja.m_ActivationDir = Direction;
+		//	m_Ninja.m_CurrentMoveTime = g_pData->m_Weapons.m_Ninja.m_Movetime * Server()->TickSpeed() / 1000;
+		//	m_Ninja.m_OldVelAmount = length(m_Core.m_Vel);
 
-			GameServer()->CreateSound(m_Pos, SOUND_NINJA_FIRE);
-		} break;
+		//	GameServer()->CreateSound(m_Pos, SOUND_NINJA_FIRE);
+		//} break;
 
 	}
 
@@ -540,6 +549,10 @@ void CCharacter::Tick()
 		Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 	}
 
+	int hooked = -1;
+	if ((hooked = m_Core.m_HookedPlayer) != -1)
+		GameServer()->GetPlayerChar(hooked)->m_Attacker = m_pPlayer->GetCID();
+
 	// handle Weapons
 	HandleWeapons();
 }
@@ -648,6 +661,14 @@ bool CCharacter::IncreaseArmor(int Amount)
 	return true;
 }
 
+bool CCharacter::IncreaseDamage(int Amount)
+{
+	if(m_Damage <= 0)
+		return false;
+	m_Damage = clamp(m_Damage+Amount, 0, 20);
+	return true;
+}
+
 void CCharacter::Die(int Killer, int Weapon)
 {
 	// we got to wait 0.5 secs before respawning
@@ -697,7 +718,18 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 	int OldHealth = m_Health, OldArmor = m_Armor;
 	if(Dmg)
 	{
-		m_Damage ++;
+		if(m_Armor > 0)
+			m_Armor--;
+		else if(m_Damage < 20)
+		{
+			//pPlayer->m_TeeInfos.m_aSkinPartColors[0];
+			//0x5b806f;
+			m_Damage++;
+			if(m_Damage < 10)
+				m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] - 0x001000*m_Damage + 0x000010*m_Damage;
+			else
+				m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] - 0x000010*m_Damage + 0x100000*m_Damage;
+		}
 		m_Attacker = From;
 		//if(m_Armor)
 		//{

@@ -49,6 +49,7 @@ public:
 
 	bool IncreaseHealth(int Amount);
 	bool IncreaseArmor(int Amount);
+	bool IncreaseDamage(int Amount);
 
 	bool GiveWeapon(int Weapon, int Ammo);
 	void GiveNinja();

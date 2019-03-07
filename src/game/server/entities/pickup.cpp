@@ -50,7 +50,7 @@ void CPickup::Tick()
 		switch (m_Type)
 		{
 			case PICKUP_HEALTH:
-				if(pChr->IncreaseHealth(1))
+				if(pChr->IncreaseDamage(-1))
 				{
 					Picked = true;
 					GameServer()->CreateSound(m_Pos, SOUND_PICKUP_HEALTH);
