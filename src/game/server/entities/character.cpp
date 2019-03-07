@@ -678,6 +678,13 @@ void CCharacter::Die(int Killer, int Weapon)
 	{
 		Killer = m_Attacker;
 		Weapon = WEAPON_HAMMER;
+		// set attacker's face to happy (taunt!)
+		CCharacter *pChr = GameServer()->m_apPlayers[Killer]->GetCharacter();
+		if (pChr)
+		{
+			pChr->m_EmoteType = EMOTE_HAPPY;
+			pChr->m_EmoteStop = Server()->Tick() + Server()->TickSpeed();
+		}
 	}
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
 

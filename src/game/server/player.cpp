@@ -196,6 +196,8 @@ void CPlayer::Snap(int SnappingClient)
 			pClientInfo->m_aUseCustomColors[p] = m_TeeInfos.m_aUseCustomColors[p];
 			pClientInfo->m_aSkinPartColors[p] = m_TeeInfos.m_aSkinPartColors[p];
 		}
+		// pClientInfo->m_aSkinPartColors[0] = m_pCharacter ? (min((5 + m_pCharacter->CheckDamage()) * 4, 255) << 16) | 0xff00 : 0;
+		// m_TeeInfos.m_aSkinPartColors[p];
 	}
 }
 

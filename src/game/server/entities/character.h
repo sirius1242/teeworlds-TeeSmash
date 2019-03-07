@@ -51,6 +51,8 @@ public:
 	bool IncreaseArmor(int Amount);
 	bool IncreaseDamage(int Amount);
 
+	int CheckDamage() { return m_Damage; }
+
 	bool GiveWeapon(int Weapon, int Ammo);
 	void GiveNinja();
 
