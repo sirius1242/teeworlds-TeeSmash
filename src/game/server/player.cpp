@@ -68,6 +68,9 @@ void CPlayer::Tick()
 			m_Latency.m_AccumMax = 0;
 		}
 	}
+	// int Damage = m_pCharacter ? m_pCharacter->CheckDamage() : 0;
+	// int SkinHue = min((10 + Damage) * 6, 255) << 16;
+	// m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = SkinHue | 255 << 8;
 
 	if(m_pCharacter && !m_pCharacter->IsAlive())
 	{
@@ -196,6 +199,9 @@ void CPlayer::Snap(int SnappingClient)
 			pClientInfo->m_aUseCustomColors[p] = m_TeeInfos.m_aUseCustomColors[p];
 			pClientInfo->m_aSkinPartColors[p] = m_TeeInfos.m_aSkinPartColors[p];
 		}
+		// int Damage = m_pCharacter ? m_pCharacter->CheckDamage() : 0;
+		// int SkinHue = min((10 + Damage) * 6, 255) << 16;
+		// pClientInfo->m_aSkinPartColors[0] = SkinHue | 255 << 8;
 		// pClientInfo->m_aSkinPartColors[0] = m_pCharacter ? (min((5 + m_pCharacter->CheckDamage()) * 4, 255) << 16) | 0xff00 : 0;
 		// m_TeeInfos.m_aSkinPartColors[p];
 	}

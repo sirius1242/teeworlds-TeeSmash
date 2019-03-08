@@ -12,12 +12,7 @@
 #include <game/version.h>
 
 #include "entities/character.h"
-#include "gamemodes/ctf.h"
-#include "gamemodes/dm.h"
-#include "gamemodes/lms.h"
-#include "gamemodes/lts.h"
-#include "gamemodes/mod.h"
-#include "gamemodes/tdm.h"
+#include "gamemodes/tsmash.h"
 #include "gamecontext.h"
 #include "player.h"
 
@@ -1438,18 +1433,18 @@ void CGameContext::OnInit()
 	m_Collision.Init(&m_Layers);
 
 	// select gametype
-	if(str_comp_nocase(g_Config.m_SvGametype, "mod") == 0)
-		m_pController = new CGameControllerMOD(this);
-	else if(str_comp_nocase(g_Config.m_SvGametype, "ctf") == 0)
-		m_pController = new CGameControllerCTF(this);
-	else if(str_comp_nocase(g_Config.m_SvGametype, "lms") == 0)
-		m_pController = new CGameControllerLMS(this);
-	else if(str_comp_nocase(g_Config.m_SvGametype, "lts") == 0)
-		m_pController = new CGameControllerLTS(this);
-	else if(str_comp_nocase(g_Config.m_SvGametype, "tdm") == 0)
-		m_pController = new CGameControllerTDM(this);
-	else
-		m_pController = new CGameControllerDM(this);
+	//if(str_comp_nocase(g_Config.m_SvGametype, "mod") == 0)
+	//	m_pController = new CGameControllerMOD(this);
+	//else if(str_comp_nocase(g_Config.m_SvGametype, "ctf") == 0)
+	//	m_pController = new CGameControllerCTF(this);
+	//else if(str_comp_nocase(g_Config.m_SvGametype, "lms") == 0)
+	//	m_pController = new CGameControllerLMS(this);
+	//else if(str_comp_nocase(g_Config.m_SvGametype, "lts") == 0)
+	//	m_pController = new CGameControllerLTS(this);
+	//else if(str_comp_nocase(g_Config.m_SvGametype, "tdm") == 0)
+	//	m_pController = new CGameControllerTDM(this);
+	// else
+	m_pController = new CGameControllerDM(this);
 
 	// create all entities from the game layer
 	CMapItemLayerTilemap *pTileMap = m_Layers.GameLayer();
