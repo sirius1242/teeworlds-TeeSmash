@@ -327,12 +327,19 @@ void CCharacter::FireWeapon()
 				else
 					Dir = vec2(0.f, -1.f);
 
+				float FinalHammerStrength = g_Config.m_SvHammerStartStrength/10.f + pTarget->m_Damage * g_Config.m_SvHammerHitStrength/10.f;
 				if(m_ActiveWeapon == WEAPON_NINJA)
-					pTarget->TakeDamage(vec2(0.f, -10.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
-					m_pPlayer->GetCID(), m_ActiveWeapon);
-				else
-					pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
-					m_pPlayer->GetCID(), m_ActiveWeapon);
+					FinalHammerStrength += g_Config.m_SvHammerSuperStrength/10.f;
+				vec2 Force = vec2(0.f, -1.f) + normalize(vec2(Dir.x*2, Dir.y - 1.1f)) * FinalHammerStrength;
+				//pTarget->TakeDamage(Force*g_Config.SvNinjaForce, 0, m_pPlayer->GetCID(), m_ActiveWeapon);
+				pTarget->TakeDamage(Force, vec2(0.f, 0.f), g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage, m_pPlayer->GetCID(), m_ActiveWeapon);
+
+				//if(m_ActiveWeapon == WEAPON_NINJA)
+				//	pTarget->TakeDamage(vec2(0.f, -10.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+				//	m_pPlayer->GetCID(), m_ActiveWeapon);
+				//else
+				//	pTarget->TakeDamage(vec2(0.f, -1.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
+				//	m_pPlayer->GetCID(), m_ActiveWeapon);
 				Hits++;
 			}
 
@@ -734,6 +741,7 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 	// if(From == m_pPlayer->GetCID())
 	// 	Dmg = max(1, Dmg/2);
 
+	m_Core.m_Vel += Force;
 	int OldHealth = m_Health, OldArmor = m_Armor;
 	if(Dmg)
 	{
@@ -852,8 +860,6 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 
 		//m_Health -= Dmg;
 	}
-
-	m_Core.m_Vel += Force * 2 + Force * m_Damage/20 * g_Config.m_SvForceEnlarge;
 
 	// create healthmod indicator
 	GameServer()->CreateDamage(m_Pos, m_pPlayer->GetCID(), Source, OldHealth-m_Health, OldArmor-m_Armor, From == m_pPlayer->GetCID());
