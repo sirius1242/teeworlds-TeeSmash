@@ -329,7 +329,10 @@ void CCharacter::FireWeapon()
 
 				float FinalHammerStrength = g_Config.m_SvHammerStartStrength/10.f + pTarget->m_Damage * g_Config.m_SvHammerHitStrength/10.f;
 				if(m_ActiveWeapon == WEAPON_NINJA)
+				{
 					FinalHammerStrength += g_Config.m_SvHammerSuperStrength/10.f;
+					m_Ninja.m_ActivationDir = Direction;
+				}
 				vec2 Force = vec2(0.f, -1.f) + normalize(vec2(Dir.x*2, Dir.y - 1.1f)) * FinalHammerStrength;
 				//pTarget->TakeDamage(Force*g_Config.SvNinjaForce, 0, m_pPlayer->GetCID(), m_ActiveWeapon);
 				pTarget->TakeDamage(Force, vec2(0.f, 0.f), g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage, m_pPlayer->GetCID(), m_ActiveWeapon);
