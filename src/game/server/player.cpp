@@ -337,7 +337,7 @@ void CPlayer::KillCharacter(int Weapon)
 
 void CPlayer::SendMsg(const char Msg[])
 {
-	GameServer()->SendChat(-1, CHAT_WHISPER, m_ClientID, Msg);
+	GameServer()->SendChat(m_ClientID, CHAT_WHISPER, m_ClientID, Msg);
 }
 
 void CPlayer::Respawn()
