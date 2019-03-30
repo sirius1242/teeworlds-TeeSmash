@@ -335,6 +335,11 @@ void CPlayer::KillCharacter(int Weapon)
 	}
 }
 
+void CPlayer::SendMsg(const char Msg[])
+{
+	GameServer()->SendChat(-1, CHAT_WHISPER, m_ClientID, Msg);
+}
+
 void CPlayer::Respawn()
 {
 	if(m_RespawnDisabled && m_Team != TEAM_SPECTATORS)

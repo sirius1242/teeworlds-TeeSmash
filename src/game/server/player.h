@@ -40,6 +40,7 @@ public:
 	void OnDisconnect();
 
 	void KillCharacter(int Weapon = WEAPON_GAME);
+	void SendMsg(const char Msg[]);
 	CCharacter *GetCharacter();
 
 	//---------------------------------------------------------

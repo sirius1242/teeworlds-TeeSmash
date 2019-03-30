@@ -131,6 +131,7 @@ MACRO_CONFIG_INT(SvHammerSuperStrength, sv_hammer_super_strength, 500, 0, 100000
 
 MACRO_CONFIG_INT(SvHammerStartStrength, sv_hammer_start_strength, 300, 0, 100000, CFGFLAG_SERVER, "The hammer strength before being hit")
 MACRO_CONFIG_INT(SvHammerHitStrength, sv_hammer_hit_strength, 60, 0, 100000, CFGFLAG_SERVER, "How much the hammer strength increases which each hit")
+MACRO_CONFIG_INT(SvEnableSuicide, sv_enable_suicide, 0, 0, 1, CFGFLAG_SERVER, "If player can suicide (1 to enable, default 0)")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly
