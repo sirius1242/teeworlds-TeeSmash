@@ -218,6 +218,9 @@ function(set_glob VAR GLOBBING EXTS DIRECTORY) # ...
       if(GLOB_BUT_NOT_LIST)
         message(AUTHOR_WARNING "Entries only present in ${DIRECTORY}: ${GLOB_BUT_NOT_LIST}")
       endif()
+      if(NOT LIST_BUT_NOT_GLOB AND NOT GLOB_BUT_NOT_LIST)
+        message(AUTHOR_WARNING "${VAR} is not alphabetically sorted")
+      endif()
     endif()
   endif()
 
@@ -291,6 +294,7 @@ if(NOT CMAKE_CROSSCOMPILING)
   find_package(PkgConfig)
 endif()
 find_package(ZLIB)
+find_package(Crypto)
 find_package(Freetype)
 find_package(Git)
 find_package(GTest)
@@ -339,6 +343,7 @@ show_dependency_status("Freetype" FREETYPE)
 if(TARGET_OS AND TARGET_OS STREQUAL "mac")
   show_dependency_status("Hdiutil" HDIUTIL)
 endif()
+show_dependency_status("OpenSSL Crypto" CRYPTO)
 show_dependency_status("Pnglite" PNGLITE)
 show_dependency_status("PythonInterp" PYTHONINTERP)
 show_dependency_status("SDL2" SDL2)
@@ -845,16 +850,15 @@ set_glob(DATA GLOB_RECURSE "json;map;png;rules;ttf;txt;wv" datasrc
   countryflags/default.png
   countryflags/index.json
   deadtee.png
+  editor/automap/desert_main.json
   editor/automap/grass_doodads.json
   editor/automap/grass_main.json
+  editor/automap/jungle_main.json
+  editor/automap/winter_main.json
   editor/background.png
   editor/checker.png
   editor/cursor.png
-  editor/desert_main.rules
   editor/entities.png
-  editor/grass_main.rules
-  editor/jungle_main.rules
-  editor/winter_main.rules
   emoticons.png
   fonts/DejaVuSans.ttf
   game.png
@@ -864,7 +868,6 @@ set_glob(DATA GLOB_RECURSE "json;map;png;rules;ttf;txt;wv" datasrc
   languages/breton.json
   languages/bulgarian.json
   languages/catalan.json
-  languages/chinese.json
   languages/chuvash.json
   languages/czech.json
   languages/danish.json
@@ -898,6 +901,7 @@ set_glob(DATA GLOB_RECURSE "json;map;png;rules;ttf;txt;wv" datasrc
   languages/slovenian.json
   languages/spanish.json
   languages/swedish.json
+  languages/traditional_chinese.json
   languages/turkish.json
   languages/ukrainian.json
   mapres/bg_cloud1.png
@@ -908,6 +912,7 @@ set_glob(DATA GLOB_RECURSE "json;map;png;rules;ttf;txt;wv" datasrc
   mapres/desert_mountains.png
   mapres/desert_mountains2.png
   mapres/desert_sun.png
+  mapres/easter.png
   mapres/generic_deathtiles.png
   mapres/generic_lamps.png
   mapres/generic_shadows.png
@@ -956,6 +961,7 @@ set_glob(DATA GLOB_RECURSE "json;map;png;rules;ttf;txt;wv" datasrc
   skins/body/kitty.png
   skins/body/standard.png
   skins/body/x_ninja.png
+  skins/bot.png
   skins/brownbear.json
   skins/cammo.json
   skins/cammostripes.json
@@ -1024,6 +1030,7 @@ set_glob(DATA GLOB_RECURSE "json;map;png;rules;ttf;txt;wv" datasrc
   ui/menuimages/play_game.png
   ui/menuimages/settings.png
   ui/no_skinpart.png
+  ui/sound_icons.png
   ui/themes/heavens.png
   ui/themes/heavens_day.map
   ui/themes/heavens_night.map
@@ -1121,6 +1128,11 @@ generate_source("src/generated/server_data.h" "server_content_header")
 set_src(BASE GLOB_RECURSE src/base
   color.h
   detect.h
+  hash.c
+  hash.h
+  hash_ctxt.h
+  hash_libtomcrypt.c
+  hash_openssl.c
   math.h
   system.c
   system.h
@@ -1228,7 +1240,7 @@ set(GAME_GENERATED_SHARED
 set(DEPS ${DEP_MD5} ${ZLIB_DEP})
 
 # Libraries
-set(LIBS ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARIES} ${PLATFORM_LIBS})
+set(LIBS ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARIES} ${CRYPTO_LIBRARIES} ${PLATFORM_LIBS})
 
 # Targets
 add_library(engine-shared EXCLUDE_FROM_ALL OBJECT ${ENGINE_INTERFACE} ${ENGINE_SHARED} ${ENGINE_GENERATED_SHARED} ${BASE})
@@ -1316,6 +1328,8 @@ if(CLIENT)
     components/motd.h
     components/nameplates.cpp
     components/nameplates.h
+    components/notifications.cpp
+    components/notifications.h
     components/particles.cpp
     components/particles.h
     components/players.cpp
@@ -1328,6 +1342,8 @@ if(CLIENT)
     components/sounds.h
     components/spectator.cpp
     components/spectator.h
+    components/stats.cpp
+    components/stats.h
     components/voting.cpp
     components/voting.h
     gameclient.cpp
@@ -1558,6 +1574,8 @@ if(GTEST_FOUND OR DOWNLOAD_GTEST)
   set_src(TESTS GLOB src/test
     fs.cpp
     git_revision.cpp
+    hash.cpp
+    storage.cpp
     str.cpp
     test.cpp
     test.h
@@ -1947,6 +1965,9 @@ foreach(target ${TARGETS_OWN})
   target_compile_definitions(${target} PRIVATE $<$<CONFIG:Debug>:CONF_DEBUG>)
   target_include_directories(${target} PRIVATE ${CURL_INCLUDE_DIRS})
   target_include_directories(${target} PRIVATE ${ZLIB_INCLUDE_DIRS})
+  if(CRYPTO_FOUND)
+    target_compile_definitions(${target} PRIVATE CONF_OPENSSL)
+  endif()
 endforeach()
 
 foreach(target ${TARGETS_DEP})
