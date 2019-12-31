@@ -676,9 +676,13 @@ bool CCharacter::IncreaseArmor(int Amount)
 
 bool CCharacter::IncreaseDamage(int Amount)
 {
-	if(m_Damage <= 0)
+	if((m_Damage <= 0 && Amount < 0))
 		return false;
 	m_Damage = clamp(m_Damage+Amount, 0, 20);
+	int Damage = m_pPlayer->GetCharacter() ? m_Damage : 0;
+	int SkinHue = min((10 + Damage) * 10, 255) << 16;
+	m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = SkinHue | 255 << 8;
+	m_pPlayer->UpdateSkin();
 	return true;
 }
 
@@ -745,15 +749,17 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 		{
 			//pPlayer->m_TeeInfos.m_aSkinPartColors[0];
 			//0x5b806f;
-			m_Damage++;
+			IncreaseDamage(1);
 			// if(m_Damage < 10)
 			// 	m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] - 0x001000*m_Damage + 0x000010*m_Damage;
 			// else
 			// 	m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] - 0x000010*m_Damage + 0x100000*m_Damage;
+			/*
 			int Damage = m_pPlayer->GetCharacter() ? m_Damage : 0;
 			int SkinHue = min((10 + Damage) * 10, 255) << 16;
 			m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = SkinHue | 255 << 8;
 			m_pPlayer->UpdateSkin();
+			*/
 
 		}
 		m_Attacker = From;
