@@ -81,6 +81,9 @@ bool CCharacter::Spawn(CPlayer *pPlayer, vec2 Pos)
 	m_Alive = true;
 
 	GameServer()->m_pController->OnCharacterSpawn(this);
+	pPlayer->m_TeeInfos.m_aSkinPartColors[0] = 0x40a050;
+	str_copy(pPlayer->m_TeeInfos.m_aaSkinPartNames[1], "\0", 24);
+	m_pPlayer->UpdateSkin();
 
 	return true;
 }
@@ -559,18 +562,6 @@ void CCharacter::Tick()
 		Die(m_pPlayer->GetCID(), WEAPON_WORLD);
 	}
 
-	if (m_EmoteType != EMOTE_HAPPY && m_Damage > 0)
-	{
-		if(m_Damage <= 5)
-			m_EmoteType = EMOTE_ANGRY;
-		else if(m_Damage <= 10)
-			m_EmoteType = EMOTE_SURPRISE;
-		else if(m_Damage <= 15)
-			m_EmoteType = EMOTE_BLINK;
-		else if(m_Damage <= 20)
-			m_EmoteType = EMOTE_PAIN;
-		m_EmoteStop = Server()->Tick() + Server()->TickSpeed();
-	}
 	int hooked = -1;
 	if ((hooked = m_Core.m_HookedPlayer) != -1)
 		GameServer()->GetPlayerChar(hooked)->m_Attacker = m_pPlayer->GetCID();
@@ -755,90 +746,15 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 			//pPlayer->m_TeeInfos.m_aSkinPartColors[0];
 			//0x5b806f;
 			m_Damage++;
-			if(m_Damage <= 5)
-				m_EmoteType = EMOTE_SURPRISE;
-			else if(m_Damage <= 10)
-				m_EmoteType = EMOTE_BLINK;
-			else if(m_Damage <= 15)
-				m_EmoteType = EMOTE_PAIN;
-			else if(m_Damage <= 20)
-				m_EmoteType = EMOTE_ANGRY;
 			// if(m_Damage < 10)
 			// 	m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] - 0x001000*m_Damage + 0x000010*m_Damage;
 			// else
 			// 	m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] - 0x000010*m_Damage + 0x100000*m_Damage;
-			//int Damage = m_pCharacter ? m_pCharacter->CheckDamage() : 0;
-			//int SkinHue = min((10 + Damage) * 6, 255) << 16;
-			//m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = SkinHue | 255 << 8;
+			int Damage = m_pPlayer->GetCharacter() ? m_Damage : 0;
+			int SkinHue = min((10 + Damage) * 10, 255) << 16;
+			m_pPlayer->m_TeeInfos.m_aSkinPartColors[0] = SkinHue | 255 << 8;
+			m_pPlayer->UpdateSkin();
 
-			//m_EmoteType = EMOTE_PAIN;
-			//m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
-			/*
-			int i = m_pPlayer->GetCID();
-			CNetMsg_Sv_ClientInfo ClientInfoMsg;
-			ClientInfoMsg.m_ClientID = i;
-			ClientInfoMsg.m_Local = 1;
-			ClientInfoMsg.m_Team = m_pPlayer->GetTeam();
-			ClientInfoMsg.m_pName = Server()->ClientName(i);
-			ClientInfoMsg.m_pClan = Server()->ClientClan(i);
-			ClientInfoMsg.m_Country = Server()->ClientCountry(i);
-			ClientInfoMsg.m_Silent = false;
-			for(int p = 0; p < 6; p++)
-			{
-				ClientInfoMsg.m_apSkinPartNames[p] = m_pPlayer->m_TeeInfos.m_aaSkinPartNames[p];
-				ClientInfoMsg.m_aUseCustomColors[p] = m_pPlayer->m_TeeInfos.m_aUseCustomColors[p];
-				ClientInfoMsg.m_aSkinPartColors[p] = m_pPlayer->m_TeeInfos.m_aSkinPartColors[p];
-			}
-			Server()->SendPackMsg(&ClientInfoMsg, MSGFLAG_VITAL|MSGFLAG_NORECORD, -1);
-			*/
-
-			/*
-			int ClientID = m_pPlayer->GetCID();
-			CNetMsg_Sv_ClientInfo NewClientInfoMsg;
-			NewClientInfoMsg.m_ClientID = ClientID;
-			NewClientInfoMsg.m_Local = 0;
-			NewClientInfoMsg.m_Team = GameServer()->m_apPlayers[ClientID]->GetTeam();
-			NewClientInfoMsg.m_pName = Server()->ClientName(ClientID);
-			NewClientInfoMsg.m_pClan = Server()->ClientClan(ClientID);
-			NewClientInfoMsg.m_Country = Server()->ClientCountry(ClientID);
-			NewClientInfoMsg.m_Silent = false;
-
-			if(g_Config.m_SvSilentSpectatorMode && GameServer()->m_apPlayers[ClientID]->GetTeam() == TEAM_SPECTATORS)
-				NewClientInfoMsg.m_Silent = true;
-
-			for(int p = 0; p < 6; p++)
-			{
-				NewClientInfoMsg.m_apSkinPartNames[p] = GameServer()->m_apPlayers[ClientID]->m_TeeInfos.m_aaSkinPartNames[p];
-				NewClientInfoMsg.m_aUseCustomColors[p] = GameServer()->m_apPlayers[ClientID]->m_TeeInfos.m_aUseCustomColors[p];
-				NewClientInfoMsg.m_aSkinPartColors[p] = GameServer()->m_apPlayers[ClientID]->m_TeeInfos.m_aSkinPartColors[p];
-			}
-			for(int i = 0; i < MAX_CLIENTS; ++i)
-			{
-				if(i == ClientID || !GameServer()->m_apPlayers[i] || (!Server()->ClientIngame(i) && !GameServer()->m_apPlayers[i]->IsDummy()))
-					continue;
-
-				// new info for others
-				if(Server()->ClientIngame(i))
-					Server()->SendPackMsg(&NewClientInfoMsg, MSGFLAG_VITAL|MSGFLAG_NORECORD, i);
-
-				// existing infos for new player
-				CNetMsg_Sv_ClientInfo ClientInfoMsg;
-				ClientInfoMsg.m_ClientID = i;
-				ClientInfoMsg.m_Local = 0;
-				ClientInfoMsg.m_Team = GameServer()->m_apPlayers[i]->GetTeam();
-				ClientInfoMsg.m_pName = Server()->ClientName(i);
-				ClientInfoMsg.m_pClan = Server()->ClientClan(i);
-				ClientInfoMsg.m_Country = Server()->ClientCountry(i);
-				ClientInfoMsg.m_Silent = false;
-				for(int p = 0; p < 6; p++)
-				{
-					ClientInfoMsg.m_apSkinPartNames[p] = GameServer()->m_apPlayers[i]->m_TeeInfos.m_aaSkinPartNames[p];
-					ClientInfoMsg.m_aUseCustomColors[p] = GameServer()->m_apPlayers[i]->m_TeeInfos.m_aUseCustomColors[p];
-					ClientInfoMsg.m_aSkinPartColors[p] = GameServer()->m_apPlayers[i]->m_TeeInfos.m_aSkinPartColors[p];
-				}
-				Server()->SendPackMsg(&ClientInfoMsg, MSGFLAG_VITAL|MSGFLAG_NORECORD, ClientID);
-			}
-			*/
 		}
 		m_Attacker = From;
 		//if(m_Armor)

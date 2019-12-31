@@ -34,6 +34,7 @@ public:
 	void Tick();
 	void PostTick();
 	void Snap(int SnappingClient);
+	void UpdateSkin();
 
 	void OnDirectInput(CNetObj_PlayerInput *NewInput);
 	void OnPredictedInput(CNetObj_PlayerInput *NewInput);
