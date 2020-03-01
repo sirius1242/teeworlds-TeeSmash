@@ -338,7 +338,8 @@ void CCharacter::FireWeapon()
 				}
 				vec2 Force = vec2(0.f, -1.f) + normalize(vec2(Dir.x*2, Dir.y - 1.1f)) * FinalHammerStrength;
 				//pTarget->TakeDamage(Force*g_Config.SvNinjaForce, 0, m_pPlayer->GetCID(), m_ActiveWeapon);
-				pTarget->TakeDamage(Force, vec2(0.f, 0.f), g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage, m_pPlayer->GetCID(), m_ActiveWeapon);
+				//pTarget->TakeDamage(Force, vec2(0.f, 0.f), g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage, m_pPlayer->GetCID(), m_ActiveWeapon);
+				pTarget->TakeDamage(Force, vec2(0.f, 0.f), 1, m_pPlayer->GetCID(), m_ActiveWeapon);
 
 				//if(m_ActiveWeapon == WEAPON_NINJA)
 				//	pTarget->TakeDamage(vec2(0.f, -10.f) + normalize(Dir + vec2(0.f, -1.1f)) * 10.0f, Dir*-1, g_pData->m_Weapons.m_Hammer.m_pBase->m_Damage,
@@ -701,6 +702,7 @@ void CCharacter::Die(int Killer, int Weapon)
 		{
 			pChr->m_EmoteType = EMOTE_HAPPY;
 			pChr->m_EmoteStop = Server()->Tick() + Server()->TickSpeed();
+			GameServer()->CreateSound(pChr->m_Pos, SOUND_CTF_GRAB_PL, (1<<pChr->GetPlayer()->GetCID()));
 		}
 	}
 	int ModeSpecial = GameServer()->m_pController->OnCharacterDeath(this, GameServer()->m_apPlayers[Killer], Weapon);
@@ -826,8 +828,8 @@ bool CCharacter::TakeDamage(vec2 Force, vec2 Source, int Dmg, int From, int Weap
 	else
 		GameServer()->CreateSound(m_Pos, SOUND_PLAYER_PAIN_SHORT);
 
-	// m_EmoteType = EMOTE_PAIN;
-	// m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
+	m_EmoteType = EMOTE_PAIN;
+	m_EmoteStop = Server()->Tick() + 500 * Server()->TickSpeed() / 1000;
 
 	return true;
 }
